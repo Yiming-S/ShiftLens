@@ -25,8 +25,22 @@ source-target alignment easier to inspect.
 - Live canvas animations for each method
 - Optional matrix and diagnostic panels
 - Source-target color coding and class-shape coding
-- Shareable URL state for method, progress, panels, and method controls
+- Compare mode for paired method playback
+- Live mean, covariance, MMD, and class-centroid gap metrics
+- Dataset controls for mean shift, target rotation, scale, noise, and sample count
+- Method detail cards with assumptions, matched quantities, outputs, math sketches, and references
+- Export of the current view as PNG and the animation as WebM
+- Previous/next step controls, keyboard navigation, and fullscreen canvas mode
+- Shareable URL state for method, progress, panels, comparison, dataset settings, and method controls
 - Dependency-free static frontend
+
+## Controls
+
+- `Left` / `Right`: move to the previous or next semantic step
+- `Space`: play or pause the animation
+- `PNG`: export the current canvas frame
+- `WebM`: record the current method animation
+- `Fullscreen`: expand the canvas for presentation
 
 ## Usage
 

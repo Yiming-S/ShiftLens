@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#161616" />
 <title>ShiftLens — interactive visualizations for domain adaptation</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-<link rel="stylesheet" href="css/style.css?v=2" />
+<link rel="stylesheet" href="css/style.css?v=4" />
 </head>
 <body>
 <main class="app">
@@ -16,8 +16,22 @@
       <h1>ShiftLens</h1>
       <p class="sub">Interactive visualizations for domain adaptation. Watch how each method transforms source data to align with the target — step by step, on 2-D toy data.</p>
     </div>
-    <label class="switch"><input type="checkbox" id="showmat" checked /> <span>Show matrices / panels</span></label>
   </header>
+
+  <section class="toolbar" aria-label="Visualization controls">
+    <div class="tool-group">
+      <label class="switch"><input type="checkbox" id="showmat" checked /> <span>Panels</span></label>
+      <label class="switch"><input type="checkbox" id="compare" /> <span>Compare</span></label>
+      <label class="select-wrap"><span>with</span><select id="compare-method" aria-label="comparison method"></select></label>
+    </div>
+    <div class="tool-group actions">
+      <button id="prev-step" type="button">Previous</button>
+      <button id="next-step" type="button">Next</button>
+      <button id="export-png" type="button">PNG</button>
+      <button id="export-webm" type="button">WebM</button>
+      <button id="fullscreen" type="button">Fullscreen</button>
+    </div>
+  </section>
 
   <nav id="tabs" class="tabs" aria-label="Domain adaptation methods"></nav>
 
@@ -25,7 +39,15 @@
     <h2 id="mname"></h2>
     <p id="blurb" class="blurb"></p>
     <div id="facts" class="facts"></div>
+    <div id="method-info" class="method-info" aria-label="Method details"></div>
   </section>
+
+  <section id="metrics" class="metrics" aria-label="Live metrics"></section>
+
+  <details class="dataset-panel">
+    <summary>Dataset controls</summary>
+    <div id="dataset-controls" class="dataset-controls"></div>
+  </details>
 
   <ol id="stepper" class="stepper" aria-label="method steps"></ol>
 
@@ -68,6 +90,6 @@
 <script src="js/methods/gfk.js"></script>
 <script src="js/methods/ot.js"></script>
 <script src="js/methods/m3d.js"></script>
-<script src="js/app.js?v=2"></script>
+<script src="js/app.js?v=4"></script>
 </body>
 </html>
