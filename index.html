@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ShiftLens — interactive visualizations for domain adaptation</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<main class="app">
+  <header class="head">
+    <div>
+      <h1>ShiftLens</h1>
+      <p class="sub">Interactive visualizations for domain adaptation. Watch how each method transforms source data to align with the target — step by step, on 2-D toy data.</p>
+    </div>
+    <label class="switch"><input type="checkbox" id="showmat" checked /> <span>Show matrices / panels</span></label>
+  </header>
+
+  <nav id="tabs" class="tabs" aria-label="Domain adaptation methods"></nav>
+
+  <section class="method">
+    <h2 id="mname"></h2>
+    <p id="blurb" class="blurb"></p>
+    <div id="facts" class="facts"></div>
+  </section>
+
+  <ol id="stepper" class="stepper" aria-label="method steps"></ol>
+
+  <div class="stage">
+    <canvas id="cv" role="img" aria-label="Animated visualization of the domain adaptation process"></canvas>
+  </div>
+
+  <div class="bar">
+    <button id="play" class="play" aria-label="play / pause"></button>
+    <input type="range" id="prog" min="0" max="1000" value="0" step="1" aria-label="progress" />
+    <span id="readout" class="readout"></span>
+  </div>
+  <div class="capline">
+    <span id="step" class="step"></span>
+    <span id="caption" class="caption"></span>
+  </div>
+  <div id="controls" class="ctrls"></div>
+
+  <footer class="foot">
+    <span>source <i class="sw src"></i></span>
+    <span>target <i class="sw tgt"></i></span>
+    <span class="muted">colour = domain · shape = class · method geometry is recomputed live in your browser · independently developed by Yiming Shen</span>
+  </footer>
+</main>
+
+<script src="js/linalg.js"></script>
+<script src="js/data.js"></script>
+<script src="js/render.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/methods/_util.js"></script>
+<script src="js/methods/_kernel.js"></script>
+<script src="js/methods/sa.js"></script>
+<script src="js/methods/coral.js"></script>
+<script src="js/methods/rd.js"></script>
+<script src="js/methods/art.js"></script>
+<script src="js/methods/pt.js"></script>
+<script src="js/methods/tca.js"></script>
+<script src="js/methods/mida.js"></script>
+<script src="js/methods/gfk.js"></script>
+<script src="js/methods/ot.js"></script>
+<script src="js/methods/m3d.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
