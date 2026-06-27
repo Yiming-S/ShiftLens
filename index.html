@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="ShiftLens is an interactive browser-based visual explorer for domain adaptation methods." />
+<meta name="theme-color" content="#161616" />
 <title>ShiftLens — interactive visualizations for domain adaptation</title>
-<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="css/style.css?v=2" />
 </head>
 <body>
 <main class="app">
@@ -31,14 +34,15 @@
   </div>
 
   <div class="bar">
-    <button id="play" class="play" aria-label="play / pause"></button>
-    <input type="range" id="prog" min="0" max="1000" value="0" step="1" aria-label="progress" />
+    <button id="play" class="play" type="button" aria-label="Play animation"></button>
+    <input type="range" id="prog" min="0" max="1000" value="0" step="1" aria-label="animation progress" />
     <span id="readout" class="readout"></span>
   </div>
   <div class="capline">
     <span id="step" class="step"></span>
     <span id="caption" class="caption"></span>
   </div>
+  <p id="sr-status" class="sr-only" aria-live="polite"></p>
   <div id="controls" class="ctrls"></div>
 
   <footer class="foot">
@@ -64,6 +68,6 @@
 <script src="js/methods/gfk.js"></script>
 <script src="js/methods/ot.js"></script>
 <script src="js/methods/m3d.js"></script>
-<script src="js/app.js"></script>
+<script src="js/app.js?v=2"></script>
 </body>
 </html>
