@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#161616" />
 <title>ShiftLens — interactive visualizations for domain adaptation</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-<link rel="stylesheet" href="css/style.css?v=4" />
+<link rel="stylesheet" href="css/style.css?v=5" />
 </head>
 <body>
 <main class="app">
@@ -45,8 +45,23 @@
   <section id="metrics" class="metrics" aria-label="Live metrics"></section>
 
   <details class="dataset-panel">
-    <summary>Dataset controls</summary>
+    <summary>Experiment data</summary>
+    <div class="experiment-top">
+      <label class="select-wrap"><span>preset</span><select id="experiment-preset" aria-label="experiment data preset"></select></label>
+      <button id="random-seed" class="mini-action" type="button">New seed</button>
+      <button id="reset-data" class="mini-action" type="button">Reset data</button>
+      <span id="data-status" class="data-status" aria-live="polite"></span>
+    </div>
     <div id="dataset-controls" class="dataset-controls"></div>
+    <details class="custom-data-panel">
+      <summary>Custom CSV data</summary>
+      <p class="csv-hint">Paste rows as <code>domain,x,y,label</code>. Domain accepts <code>source</code>/<code>target</code> or <code>s</code>/<code>t</code>; label is optional.</p>
+      <textarea id="custom-data" spellcheck="false" placeholder="source,-2.1,0.8,0&#10;source,-1.5,-1.2,1&#10;target,2.4,-0.7,0&#10;target,3.0,1.3,1"></textarea>
+      <div class="custom-actions">
+        <button id="load-custom-data" class="mini-action" type="button">Load CSV</button>
+        <button id="clear-custom-data" class="mini-action" type="button">Clear custom</button>
+      </div>
+    </details>
   </details>
 
   <ol id="stepper" class="stepper" aria-label="method steps"></ol>
@@ -90,6 +105,6 @@
 <script src="js/methods/gfk.js"></script>
 <script src="js/methods/ot.js"></script>
 <script src="js/methods/m3d.js"></script>
-<script src="js/app.js?v=4"></script>
+<script src="js/app.js?v=5"></script>
 </body>
 </html>

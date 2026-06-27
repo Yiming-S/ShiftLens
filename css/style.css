@@ -32,12 +32,12 @@ select {
   font: inherit; font-size: 13px; color: var(--text); background: var(--surface);
   border: 1px solid var(--border); border-radius: 6px; padding: 5px 26px 5px 9px;
 }
-.actions button {
+.actions button, .mini-action {
   font: inherit; font-size: 12.5px; color: var(--text); background: var(--surface);
   border: 1px solid var(--border); border-radius: 6px; padding: 5px 9px; cursor: pointer;
 }
-.actions button:hover, select:hover { border-color: var(--accent); }
-.actions button:disabled { cursor: wait; opacity: 0.62; }
+.actions button:hover, .mini-action:hover, select:hover { border-color: var(--accent); }
+.actions button:disabled, .mini-action:disabled { cursor: wait; opacity: 0.62; }
 
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
 .tab {
@@ -50,10 +50,12 @@ select {
 .tab:focus-visible,
 .play:focus-visible,
 .actions button:focus-visible,
+.mini-action:focus-visible,
 select:focus-visible,
 .switch input:focus-visible,
 #prog:focus-visible,
-.ctrl input:focus-visible {
+.ctrl input:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -87,7 +89,29 @@ select:focus-visible,
 .dataset-panel summary {
   cursor: pointer; padding: 9px 0; color: var(--mute); font-size: 13px; user-select: none;
 }
-.dataset-controls { display: grid; grid-template-columns: repeat(5, minmax(130px, 1fr)); gap: 10px 14px; padding: 0 0 12px; }
+.experiment-top {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 0 12px;
+}
+.data-status { color: var(--mute); font-size: 12px; min-height: 18px; }
+.dataset-controls { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 14px 18px; padding: 0 0 12px; }
+.dataset-controls .ctrl {
+  display: grid; grid-template-columns: minmax(104px, max-content) minmax(96px, 1fr) minmax(46px, max-content);
+  gap: 10px; min-width: 0;
+}
+.dataset-controls .ctrl input { width: 100%; min-width: 0; }
+.dataset-controls .ctrl-val { min-width: 46px; text-align: right; }
+.custom-data-panel {
+  border-top: 1px solid var(--border); padding-top: 2px;
+}
+.custom-data-panel summary { padding: 8px 0; }
+.csv-hint { margin: 0 0 8px; color: var(--mute); font-size: 12px; }
+.csv-hint code { color: var(--text); font-family: ui-monospace, monospace; }
+textarea {
+  width: 100%; min-height: 100px; resize: vertical; display: block;
+  color: var(--text); background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 10px; font: 12px/1.45 ui-monospace, monospace;
+}
+.custom-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 8px 0 12px; }
 
 .stepper { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 4px 0 16px; }
 .stepper li {
@@ -152,6 +176,10 @@ select:focus-visible,
   border: 0;
 }
 
+@media (max-width: 920px) {
+  .dataset-controls { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+}
+
 @media (max-width: 700px) {
   .app { padding: 22px 14px 36px; }
   .head { gap: 12px; }
@@ -172,7 +200,12 @@ select:focus-visible,
   .chip { max-width: 100%; }
   .method-info { grid-template-columns: 1fr; gap: 7px; }
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dataset-controls { grid-template-columns: 1fr; }
+  .dataset-controls { grid-template-columns: 1fr; gap: 12px; }
+  .dataset-controls .ctrl { grid-template-columns: minmax(104px, max-content) minmax(90px, 1fr) minmax(46px, max-content); }
+  .experiment-top { align-items: stretch; }
+  .experiment-top .select-wrap { width: 100%; justify-content: space-between; }
+  .experiment-top select { flex: 1; min-width: 0; }
+  .data-status { flex-basis: 100%; }
   .stage { padding: 6px; margin-bottom: 12px; }
   .bar { gap: 10px; }
   .readout { min-width: 82px; font-size: 12px; }

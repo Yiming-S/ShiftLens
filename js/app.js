@@ -80,11 +80,53 @@
   };
 
   const DATASET_CONTROLS = [
+    { key: "seed", label: "seed", min: 1, max: 999, step: 1, value: 27 },
     { key: "shift", label: "mean shift", min: 0.4, max: 1.8, step: 0.1, value: 1 },
     { key: "rot", label: "target rotation", min: -60, max: 60, step: 5, value: 0, suffix: "deg" },
     { key: "scale", label: "target scale", min: 0.6, max: 1.8, step: 0.1, value: 1 },
     { key: "noise", label: "noise", min: 0, max: 0.5, step: 0.05, value: 0 },
+    { key: "sep", label: "class separation", min: 0.5, max: 2.5, step: 0.1, value: 1 },
+    { key: "labelShift", label: "label shift", min: 0, max: 0.8, step: 0.05, value: 0 },
+    { key: "outliers", label: "outliers", min: 0, max: 0.3, step: 0.05, value: 0 },
     { key: "points", label: "points/domain", min: 8, max: 64, step: 1, value: 64 },
+  ];
+
+  const EXPERIMENT_PRESETS = [
+    {
+      key: "guided", label: "method-guided toy data",
+      note: "uses the hand-tuned dataset for each method",
+      defaults: { seed: 27, shift: 1, rot: 0, scale: 1, noise: 0, sep: 1, labelShift: 0, outliers: 0, points: 64 },
+    },
+    {
+      key: "covariate", label: "covariate shift",
+      note: "same class structure, shifted target mean and covariance",
+      defaults: { seed: 41, shift: 1.35, rot: 25, scale: 1.25, noise: 0.05, sep: 1.15, labelShift: 0, outliers: 0, points: 44 },
+    },
+    {
+      key: "conditional", label: "conditional shift",
+      note: "class-specific target movement creates a conditional mismatch",
+      defaults: { seed: 52, shift: 1, rot: -15, scale: 1, noise: 0.06, sep: 1.35, labelShift: 0, outliers: 0, points: 44 },
+    },
+    {
+      key: "label", label: "label shift",
+      note: "target class proportions differ from the source",
+      defaults: { seed: 63, shift: 1.05, rot: 10, scale: 1.05, noise: 0.04, sep: 1.2, labelShift: 0.55, outliers: 0, points: 48 },
+    },
+    {
+      key: "nonlinear", label: "nonlinear warp",
+      note: "target points are bent by a smooth nonlinear deformation",
+      defaults: { seed: 74, shift: 1.1, rot: 0, scale: 1, noise: 0.05, sep: 1.05, labelShift: 0, outliers: 0, points: 48 },
+    },
+    {
+      key: "outlier", label: "outlier stress test",
+      note: "adds scattered target/source outliers to stress moment matching",
+      defaults: { seed: 85, shift: 1.1, rot: 20, scale: 1.1, noise: 0.05, sep: 1.1, labelShift: 0, outliers: 0.18, points: 48 },
+    },
+    {
+      key: "custom", label: "custom CSV",
+      note: "uses pasted source/target coordinates when available",
+      defaults: { seed: 27, shift: 1, rot: 0, scale: 1, noise: 0, sep: 1, labelShift: 0, outliers: 0, points: 64 },
+    },
   ];
 
   const dataFor = {
@@ -121,10 +163,18 @@
   const elMethodInfo = document.getElementById("method-info");
   const elMetrics = document.getElementById("metrics");
   const elDatasetControls = document.getElementById("dataset-controls");
+  const elExperimentPreset = document.getElementById("experiment-preset");
+  const elRandomSeed = document.getElementById("random-seed");
+  const elResetData = document.getElementById("reset-data");
+  const elDataStatus = document.getElementById("data-status");
+  const elCustomData = document.getElementById("custom-data");
+  const elLoadCustomData = document.getElementById("load-custom-data");
+  const elClearCustomData = document.getElementById("clear-custom-data");
   const tabsEl = document.getElementById("tabs");
 
   let cssW = 900, cssH = 480, stepCount = 0;
-  let current = null, compareKey = null, controlVals = {}, datasetVals = {};
+  let current = null, compareKey = null, experimentPreset = "guided", customDataset = null;
+  let controlVals = {}, datasetVals = {};
   let currentFrames = [], compareFrames = [], activeStepText = "";
   const showMatrices = () => elMatrixToggle.checked;
   const compareEnabled = () => elCompare.checked && compareKey && M.get(compareKey);
@@ -144,7 +194,7 @@
     const controls = {}, dataset = {};
     const datasetKeys = new Set(DATASET_CONTROLS.map((d) => d.key));
     params.forEach((value, key) => {
-      if (["method", "p", "mat", "compare", "with"].includes(key)) return;
+      if (["method", "p", "mat", "compare", "with", "preset"].includes(key)) return;
       const num = parseFloat(value);
       if (!Number.isFinite(num)) return;
       if (datasetKeys.has(key)) dataset[key] = num;
@@ -154,20 +204,25 @@
     const method = params.get("method");
     const withMethod = params.get("with");
     const mat = params.get("mat");
+    const preset = params.get("preset");
     return {
       method: method && M.get(method) ? method : null,
       p: Number.isFinite(p) ? Math.max(0, Math.min(1, p)) : 0,
       mat: mat == null ? null : !(mat === "0" || mat === "false"),
       compare: params.get("compare") === "1",
       with: withMethod && M.get(withMethod) ? withMethod : null,
+      preset: EXPERIMENT_PRESETS.some((d) => d.key === preset) ? preset : "guided",
       controls,
       dataset,
     };
   }
 
   const initialState = readUrlState();
+  experimentPreset = initialState.preset;
   DATASET_CONTROLS.forEach((spec) => {
-    datasetVals[spec.key] = initialState.dataset[spec.key] == null ? spec.value : clamp(initialState.dataset[spec.key], spec);
+    const preset = EXPERIMENT_PRESETS.find((d) => d.key === experimentPreset) || EXPERIMENT_PRESETS[0];
+    const presetValue = preset.defaults[spec.key] == null ? spec.value : preset.defaults[spec.key];
+    datasetVals[spec.key] = initialState.dataset[spec.key] == null ? presetValue : clamp(initialState.dataset[spec.key], spec);
   });
   if (initialState.mat != null) elMatrixToggle.checked = initialState.mat;
   else if (compactViewport.matches) elMatrixToggle.checked = false;
@@ -212,6 +267,115 @@
     return { points: chosen.map((i) => points[i]), labels: chosen.map((i) => labels[i]) };
   }
 
+  function countsForDomain(total, labelShift, isTarget) {
+    const n = Math.max(4, Math.round(total));
+    const prop0 = isTarget ? 0.5 + labelShift / 2 : 0.5;
+    const n0 = Math.max(2, Math.min(n - 2, Math.round(n * prop0)));
+    return [n0, n - n0];
+  }
+
+  function twoClassExperiment(kind, key) {
+    const n = key === "ot" ? Math.min(24, Math.round(datasetVals.points)) : Math.round(datasetVals.points);
+    const seed = Math.round(datasetVals.seed);
+    const sep = datasetVals.sep;
+    const ls = datasetVals.labelShift;
+    const [s0, s1] = countsForDomain(n, 0, false);
+    const [t0, t1] = countsForDomain(n, ls, true);
+    const d2r = Math.PI / 180;
+
+    const source0 = data.gaussCloud(seed + 1, 18 * d2r, 0.55, 0.28, -2.6, sep, s0);
+    const source1 = data.gaussCloud(seed + 2, -18 * d2r, 0.55, 0.28, -2.6, -sep, s1);
+    let target0 = data.gaussCloud(seed + 3, -22 * d2r, 0.58, 0.3, 2.6, sep, t0);
+    let target1 = data.gaussCloud(seed + 4, 22 * d2r, 0.58, 0.3, 2.6, -sep, t1);
+
+    if (kind === "conditional") {
+      target0 = target0.map((p) => [p[0] - 0.6, p[1] - 1.15 * sep]);
+      target1 = target1.map((p) => [p[0] + 0.6, p[1] + 1.15 * sep]);
+    } else if (kind === "nonlinear") {
+      const warp = (p) => [p[0] + 0.6 * Math.sin(1.15 * p[1]), p[1] + 0.42 * Math.sin(0.9 * p[0])];
+      target0 = target0.map(warp);
+      target1 = target1.map(warp);
+    } else if (kind === "outlier") {
+      target0 = target0.map((p) => [p[0] + 0.3, p[1] - 0.2]);
+      target1 = target1.map((p) => [p[0] - 0.3, p[1] + 0.2]);
+    }
+
+    return {
+      source: source0.concat(source1),
+      target: target0.concat(target1),
+      srcLabel: source0.map(() => 0).concat(source1.map(() => 1)),
+      tgtLabel: target0.map(() => 0).concat(target1.map(() => 1)),
+    };
+  }
+
+  function normalizeCustomDataset(parsed) {
+    const all = parsed.source.concat(parsed.target);
+    const mu = mean(all);
+    let maxAbs = 1;
+    all.forEach((p) => {
+      maxAbs = Math.max(maxAbs, Math.abs(p[0] - mu[0]), Math.abs(p[1] - mu[1]));
+    });
+    const scale = 3.8 / maxAbs;
+    const normPts = (pts) => pts.map((p) => [(p[0] - mu[0]) * scale, (p[1] - mu[1]) * scale]);
+    return Object.assign({}, parsed, { source: normPts(parsed.source), target: normPts(parsed.target) });
+  }
+
+  function mapLabels(labels) {
+    if (!labels || !labels.length) return labels;
+    const unique = [...new Set(labels.map((v) => String(v)))].sort();
+    const m = new Map(unique.map((v, i) => [v, Math.min(i, 1)]));
+    return labels.map((v) => m.get(String(v)) || 0);
+  }
+
+  function parseCustomCsv(text) {
+    const rows = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const parsed = { source: [], target: [], srcLabel: [], tgtLabel: [] };
+    rows.forEach((line, idx) => {
+      const cols = line.split(/[,\t ]+/).map((c) => c.trim()).filter(Boolean);
+      if (idx === 0 && cols.some((c) => /domain|source|target|label|x|y/i.test(c)) && Number.isNaN(parseFloat(cols[1]))) return;
+      if (cols.length < 3) throw new Error("row " + (idx + 1) + " needs domain,x,y");
+      const domain = cols[0].toLowerCase();
+      const x = parseFloat(cols[1]), y = parseFloat(cols[2]);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error("row " + (idx + 1) + " has invalid coordinates");
+      const label = cols[3] == null ? 0 : cols[3];
+      if (domain === "source" || domain === "src" || domain === "s" || domain === "0") {
+        parsed.source.push([x, y]);
+        parsed.srcLabel.push(label);
+      } else if (domain === "target" || domain === "tgt" || domain === "t" || domain === "1") {
+        parsed.target.push([x, y]);
+        parsed.tgtLabel.push(label);
+      } else {
+        throw new Error("row " + (idx + 1) + " has unknown domain");
+      }
+    });
+    if (parsed.source.length < 2 || parsed.target.length < 2) throw new Error("need at least two source and two target rows");
+    parsed.srcLabel = mapLabels(parsed.srcLabel);
+    parsed.tgtLabel = mapLabels(parsed.tgtLabel);
+    return normalizeCustomDataset(parsed);
+  }
+
+  function addOutliers(dataset) {
+    const rate = datasetVals.outliers;
+    if (rate <= 0) return dataset;
+    const r = data.rng(Math.round(datasetVals.seed) + 5000);
+    const addTo = (pts, labels) => {
+      const count = Math.max(1, Math.round(pts.length * rate));
+      const out = pts.slice();
+      const lab = labels ? labels.slice() : null;
+      for (let i = 0; i < count; i++) {
+        out.push([(r() * 2 - 1) * 4.4, (r() * 2 - 1) * 2.8]);
+        if (lab) lab.push(i % 2);
+      }
+      return { pts: out, labels: lab };
+    };
+    const s = addTo(dataset.source, dataset.srcLabel);
+    const t = addTo(dataset.target, dataset.tgtLabel);
+    const out = { source: s.pts, target: t.pts };
+    if (s.labels) out.srcLabel = s.labels;
+    if (t.labels) out.tgtLabel = t.labels;
+    return out;
+  }
+
   function perturbData(base) {
     const maxPoints = Math.round(datasetVals.points);
     const srcSel = balancedSelect(base.source, base.srcLabel, maxPoints);
@@ -230,18 +394,24 @@
     T = T.map((p) => add(mt2, mul(sub(p, mt2), scale))).map((p) => rotatePoint(p, mt2, datasetVals.rot));
 
     if (datasetVals.noise > 0) {
-      const r = data.rng(20260627);
+      const r = data.rng(Math.round(datasetVals.seed) + 20260627);
       const jitter = (pts) => pts.map((p) => [p[0] + datasetVals.noise * data.gauss(r), p[1] + datasetVals.noise * data.gauss(r)]);
       S = jitter(S); T = jitter(T);
     }
     const out = { source: S, target: T };
     if (srcLabel) out.srcLabel = srcLabel;
     if (tgtLabel) out.tgtLabel = tgtLabel;
-    return out;
+    return addOutliers(out);
   }
 
   function datasetForMethod(key) {
-    return perturbData(dataFor[key]());
+    if (experimentPreset === "custom" && customDataset) {
+      return perturbData(customDataset);
+    }
+    if (experimentPreset === "guided" || experimentPreset === "custom") {
+      return perturbData(dataFor[key]());
+    }
+    return perturbData(twoClassExperiment(experimentPreset, key));
   }
 
   function buildFrames(key) {
@@ -447,6 +617,7 @@
     params.set("method", current);
     if (player.progress() > 0.001) params.set("p", compactNumber(player.progress()));
     params.set("mat", showMatrices() ? "1" : "0");
+    if (experimentPreset !== "guided") params.set("preset", experimentPreset);
     if (compareEnabled()) {
       params.set("compare", "1");
       params.set("with", compareKey);
@@ -460,6 +631,32 @@
       if (val != null) params.set(c.key, compactNumber(val));
     });
     window.history.replaceState(null, "", window.location.pathname + "?" + params.toString() + window.location.hash);
+  }
+
+  function currentPreset() {
+    return EXPERIMENT_PRESETS.find((p) => p.key === experimentPreset) || EXPERIMENT_PRESETS[0];
+  }
+
+  function dataStatusText() {
+    if (experimentPreset === "custom") {
+      return customDataset
+        ? "custom: " + customDataset.source.length + " source, " + customDataset.target.length + " target"
+        : "custom preset selected; paste CSV to override toy data";
+    }
+    return currentPreset().note;
+  }
+
+  function updateDataStatus() {
+    elDataStatus.textContent = dataStatusText();
+  }
+
+  function applyPresetDefaults(key) {
+    const preset = EXPERIMENT_PRESETS.find((p) => p.key === key) || EXPERIMENT_PRESETS[0];
+    DATASET_CONTROLS.forEach((spec) => {
+      datasetVals[spec.key] = preset.defaults[spec.key] == null ? spec.value : preset.defaults[spec.key];
+    });
+    renderDatasetControls();
+    updateDataStatus();
   }
 
   function rebuild() {
@@ -584,11 +781,23 @@
     elDatasetControls.replaceChildren();
     DATASET_CONTROLS.forEach((spec) => {
       elDatasetControls.appendChild(makeRangeControl(spec, datasetVals[spec.key], (val) => {
-        datasetVals[spec.key] = spec.key === "points" ? Math.round(val) : val;
+        datasetVals[spec.key] = spec.key === "points" || spec.key === "seed" ? Math.round(val) : val;
         rebuild();
+        updateDataStatus();
         syncUrl();
       }));
     });
+  }
+
+  function renderExperimentPresets() {
+    elExperimentPreset.replaceChildren();
+    EXPERIMENT_PRESETS.forEach((preset) => {
+      const opt = document.createElement("option");
+      opt.value = preset.key;
+      opt.textContent = preset.label;
+      elExperimentPreset.appendChild(opt);
+    });
+    elExperimentPreset.value = experimentPreset;
   }
 
   function firstOtherMethod(key) {
@@ -709,6 +918,38 @@
     elCompareMethod.value = compareKey;
     rebuild(); resize(); syncUrl();
   });
+  elExperimentPreset.addEventListener("change", () => {
+    experimentPreset = elExperimentPreset.value;
+    applyPresetDefaults(experimentPreset);
+    rebuild(); resize(); syncUrl();
+  });
+  elRandomSeed.addEventListener("click", () => {
+    datasetVals.seed = Math.floor(1 + Math.random() * 999);
+    renderDatasetControls();
+    rebuild(); syncUrl();
+  });
+  elResetData.addEventListener("click", () => {
+    applyPresetDefaults(experimentPreset);
+    rebuild(); resize(); syncUrl();
+  });
+  elLoadCustomData.addEventListener("click", () => {
+    try {
+      customDataset = parseCustomCsv(elCustomData.value);
+      experimentPreset = "custom";
+      elExperimentPreset.value = experimentPreset;
+      updateDataStatus();
+      rebuild(); resize(); syncUrl();
+    } catch (err) {
+      customDataset = null;
+      elDataStatus.textContent = err.message || "could not parse custom CSV";
+    }
+  });
+  elClearCustomData.addEventListener("click", () => {
+    customDataset = null;
+    elCustomData.value = "";
+    updateDataStatus();
+    rebuild(); resize(); syncUrl();
+  });
   window.addEventListener("resize", resize);
   compactViewport.addEventListener("change", resize);
   document.addEventListener("fullscreenchange", () => {
@@ -730,7 +971,9 @@
   buildTabsAndCompareList();
   compareKey = initialState.with || firstOtherMethod(initialState.method || "sa");
   elCompareMethod.value = compareKey;
+  renderExperimentPresets();
   renderDatasetControls();
+  updateDataStatus();
   selectMethod(initialState.method || "sa", { seek: initialState.p, silent: true });
   resize();
   player.seek(initialState.p);

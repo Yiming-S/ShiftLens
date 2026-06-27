@@ -27,7 +27,8 @@ source-target alignment easier to inspect.
 - Source-target color coding and class-shape coding
 - Compare mode for paired method playback
 - Live mean, covariance, MMD, and class-centroid gap metrics
-- Dataset controls for mean shift, target rotation, scale, noise, and sample count
+- Experiment data presets for covariate shift, conditional shift, label shift, nonlinear warp, outlier stress tests, and custom CSV input
+- Dataset controls for random seed, mean shift, target rotation, scale, noise, class separation, label shift, outliers, and sample count
 - Method detail cards with assumptions, matched quantities, outputs, math sketches, and references
 - Export of the current view as PNG and the animation as WebM
 - Previous/next step controls, keyboard navigation, and fullscreen canvas mode
@@ -41,6 +42,21 @@ source-target alignment easier to inspect.
 - `PNG`: export the current canvas frame
 - `WebM`: record the current method animation
 - `Fullscreen`: expand the canvas for presentation
+
+## Experiment Data
+
+The experiment panel can switch between method-guided toy data and reusable
+stress-test presets. Custom data can be pasted as CSV rows:
+
+```csv
+source,-2.1,0.8,0
+source,-1.5,-1.2,1
+target,2.4,-0.7,0
+target,3.0,1.3,1
+```
+
+The app normalizes custom points into the visualization frame and maps labels
+to the two displayed class shapes.
 
 ## Usage
 
