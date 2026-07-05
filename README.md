@@ -1,5 +1,9 @@
 # ShiftLens
 
+<p align="center">
+  <img src="assets/cover.svg" alt="ShiftLens cover: interactive two-dimensional domain adaptation method explorer" width="100%">
+</p>
+
 Interactive visualizations for domain adaptation.
 
 ShiftLens is a browser-based visual explorer for understanding how domain
